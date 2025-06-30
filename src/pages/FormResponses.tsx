@@ -71,7 +71,15 @@ export default function FormResponses() {
 
       if (responsesError) throw responsesError;
 
-      setResponses(responsesData || []);
+      // Type cast the responses data
+      const typedResponses: FormResponse[] = (responsesData || []).map(response => ({
+        id: response.id,
+        answers: response.answers as Record<string, any>,
+        submitted_at: response.submitted_at,
+        metadata: response.metadata as { time_taken: number; user_agent: string; }
+      }));
+
+      setResponses(typedResponses);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
