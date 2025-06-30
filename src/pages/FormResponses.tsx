@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Download, Eye } from 'lucide-react';
+import { ArrowLeft, Download, Eye, TrendingUp, Users, Clock, Mail } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface FormResponse {
@@ -133,107 +133,232 @@ export default function FormResponses() {
     a.download = `${form.title}_responses.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
+
+    toast({
+      title: "Success",
+      description: "CSV file downloaded successfully!",
+    });
   };
+
+  const avgTimeSpent = responses.length > 0 
+    ? Math.round(responses.reduce((acc, r) => acc + (r.metadata?.time_taken || 0), 0) / responses.length)
+    : 0;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-violet-500 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-lg font-medium text-gray-700">Loading responses...</p>
+        </div>
       </div>
     );
   }
 
   if (!form) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Form Not Found</h1>
-          <Button onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-100 flex items-center justify-center p-6">
+        <Card className="w-full max-w-md text-center shadow-xl border-0 bg-white/70 backdrop-blur-sm">
+          <CardContent className="pt-8 pb-6">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Eye className="h-8 w-8 text-red-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Form Not Found</h1>
+            <p className="text-gray-600 mb-6">The form you're looking for doesn't exist or you don't have access to it.</p>
+            <Button 
+              onClick={() => navigate('/dashboard')}
+              className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-lg"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{form.title}</h1>
-            <p className="text-gray-600">Form Responses ({responses.length})</p>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-100">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/dashboard')}
+                className="bg-white/70 backdrop-blur-sm border-violet-200 hover:bg-violet-50 hover:border-violet-300 transition-all"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <div>
+                <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                  {form.title}
+                </h1>
+                <p className="text-gray-600 text-lg mt-1">Response Analytics & Data</p>
+              </div>
+            </div>
+            {responses.length > 0 && (
+              <Button 
+                onClick={exportToCSV} 
+                className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-lg"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            )}
           </div>
-        </div>
-        <div className="flex items-center space-x-2">
+
+          {/* Stats Cards */}
           {responses.length > 0 && (
-            <Button onClick={exportToCSV} variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-100 text-sm font-medium">Total Responses</p>
+                      <p className="text-3xl font-bold">{responses.length}</p>
+                    </div>
+                    <Users className="h-8 w-8 text-blue-200" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-emerald-100 text-sm font-medium">Avg. Time Spent</p>
+                      <p className="text-3xl font-bold">{avgTimeSpent}s</p>
+                    </div>
+                    <Clock className="h-8 w-8 text-emerald-200" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-100 text-sm font-medium">Latest Response</p>
+                      <p className="text-lg font-bold">
+                        {format(new Date(responses[0].submitted_at), 'MMM d')}
+                      </p>
+                    </div>
+                    <TrendingUp className="h-8 w-8 text-purple-200" />
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-lg">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-orange-100 text-sm font-medium">Response Rate</p>
+                      <p className="text-3xl font-bold">
+                        {responses.length > 0 ? '100%' : '0%'}
+                      </p>
+                    </div>
+                    <Mail className="h-8 w-8 text-orange-200" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
         </div>
-      </div>
 
-      {responses.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Eye className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No responses yet</h3>
-            <p className="text-gray-600">Responses will appear here once people start submitting your form.</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>All Responses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Submitted At</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Time Taken</TableHead>
-                    {form.fields.map(field => (
-                      <TableHead key={field.id}>{field.label}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {responses.map(response => (
-                    <TableRow key={response.id}>
-                      <TableCell>
-                        {format(new Date(response.submitted_at), 'MMM d, yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell>{response.answers.user_name || 'N/A'}</TableCell>
-                      <TableCell>{response.answers.user_email || 'N/A'}</TableCell>
-                      <TableCell>
-                        {response.metadata?.time_taken ? `${response.metadata.time_taken}s` : 'N/A'}
-                      </TableCell>
-                      {form.fields.map(field => {
-                        const answer = response.answers[field.id];
-                        return (
-                          <TableCell key={field.id}>
-                            {Array.isArray(answer) ? answer.join(', ') : (answer?.toString() || '-')}
-                          </TableCell>
-                        );
-                      })}
+        {/* Responses Table */}
+        {responses.length === 0 ? (
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+            <CardContent className="text-center py-16">
+              <div className="w-20 h-20 bg-gradient-to-br from-violet-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Eye className="h-10 w-10 text-violet-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">No responses yet</h3>
+              <p className="text-gray-600 text-lg max-w-md mx-auto">
+                Your form is ready to collect responses. Share the link and watch the data come in!
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-t-lg">
+              <CardTitle className="text-xl font-bold flex items-center">
+                <Users className="h-5 w-5 mr-2" />
+                All Responses ({responses.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50/50 hover:bg-gray-100/50">
+                      <TableHead className="font-semibold text-gray-700">Submitted At</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Name</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Email</TableHead>
+                      <TableHead className="font-semibold text-gray-700">Time Taken</TableHead>
+                      {form.fields.map(field => (
+                        <TableHead key={field.id} className="font-semibold text-gray-700">
+                          {field.label}
+                        </TableHead>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                  </TableHeader>
+                  <TableBody>
+                    {responses.map((response, index) => (
+                      <TableRow 
+                        key={response.id} 
+                        className={`hover:bg-violet-50/50 transition-colors ${
+                          index % 2 === 0 ? 'bg-white/50' : 'bg-gray-50/30'
+                        }`}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
+                            <span>{format(new Date(response.submitted_at), 'MMM d, yyyy HH:mm')}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                              {(response.answers.user_name || 'U')[0].toUpperCase()}
+                            </div>
+                            <span className="font-medium">{response.answers.user_name || 'N/A'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {response.answers.user_email || 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                            {response.metadata?.time_taken ? `${response.metadata.time_taken}s` : 'N/A'}
+                          </span>
+                        </TableCell>
+                        {form.fields.map(field => {
+                          const answer = response.answers[field.id];
+                          return (
+                            <TableCell key={field.id} className="max-w-xs">
+                              <div className="truncate" title={Array.isArray(answer) ? answer.join(', ') : (answer?.toString() || '-')}>
+                                {Array.isArray(answer) ? (
+                                  <span className="text-purple-600 font-medium">{answer.join(', ')}</span>
+                                ) : (
+                                  <span className="text-gray-700">{answer?.toString() || '-'}</span>
+                                )}
+                              </div>
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
