@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,12 +39,29 @@ export default function FormViewer() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [startTime] = useState(Date.now());
+  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     if (formId) {
       fetchForm();
+      checkUserSession();
     }
   }, [formId]);
+
+  const checkUserSession = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setUserEmail(user.email || '');
+      // Fetch user profile for name
+      const { data: profile } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', user.id)
+        .single();
+      setUserName(profile?.name || '');
+    }
+  };
 
   const fetchForm = async () => {
     try {
@@ -62,7 +78,7 @@ export default function FormViewer() {
         id: data.id,
         title: data.title,
         description: data.description,
-        fields: (data.fields as FormField[]) || [],
+        fields: (data.fields as unknown as FormField[]) || [],
         settings: data.settings
       });
     } catch (error) {
@@ -79,6 +95,18 @@ export default function FormViewer() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
+    // Validate email and name for anonymous users
+    if (!userEmail) {
+      if (!answers['user_email'] || !answers['user_email'].trim()) {
+        newErrors['user_email'] = 'Email is required';
+      }
+    }
+    if (!userName) {
+      if (!answers['user_name'] || !answers['user_name'].trim()) {
+        newErrors['user_name'] = 'Name is required';
+      }
+    }
 
     form?.fields.forEach((field) => {
       if (field.required) {
@@ -108,18 +136,27 @@ export default function FormViewer() {
     try {
       setSubmitting(true);
       const timeTaken = Math.round((Date.now() - startTime) / 1000);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Prepare submission data with user info
+      const submissionData = {
+        form_id: formId,
+        user_id: user?.id || null,
+        answers: {
+          ...answers,
+          user_email: userEmail || answers['user_email'],
+          user_name: userName || answers['user_name']
+        } as any,
+        metadata: {
+          time_taken: timeTaken,
+          user_agent: navigator.userAgent,
+          tab_switches: 0 // TODO: Implement tab switch detection
+        } as any
+      };
 
       const { error } = await supabase
         .from('form_responses')
-        .insert([{
-          form_id: formId,
-          answers: answers as any, // Cast to Json
-          metadata: {
-            time_taken: timeTaken,
-            user_agent: navigator.userAgent,
-            tab_switches: 0 // TODO: Implement tab switch detection
-          } as any // Cast to Json
-        }]);
+        .insert([submissionData]);
 
       if (error) throw error;
 
@@ -368,6 +405,42 @@ export default function FormViewer() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* User info fields for anonymous users */}
+              {!userEmail && (
+                <div>
+                  <Label htmlFor="user_email" className="flex items-center space-x-1">
+                    <span>Email Address</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="user_email"
+                    type="email"
+                    value={answers['user_email'] || ''}
+                    onChange={(e) => updateAnswer('user_email', e.target.value)}
+                    placeholder="Enter your email address"
+                    className={`mt-1 ${errors['user_email'] ? 'border-red-500' : ''}`}
+                  />
+                  {errors['user_email'] && <p className="text-red-500 text-sm mt-1">{errors['user_email']}</p>}
+                </div>
+              )}
+              
+              {!userName && (
+                <div>
+                  <Label htmlFor="user_name" className="flex items-center space-x-1">
+                    <span>Full Name</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="user_name"
+                    value={answers['user_name'] || ''}
+                    onChange={(e) => updateAnswer('user_name', e.target.value)}
+                    placeholder="Enter your full name"
+                    className={`mt-1 ${errors['user_name'] ? 'border-red-500' : ''}`}
+                  />
+                  {errors['user_name'] && <p className="text-red-500 text-sm mt-1">{errors['user_name']}</p>}
+                </div>
+              )}
+
               {form.fields.map((field) => (
                 <div key={field.id}>
                   {renderField(field)}

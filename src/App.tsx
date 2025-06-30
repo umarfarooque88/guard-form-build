@@ -8,6 +8,7 @@ import AuthPage from '@/pages/AuthPage';
 import Dashboard from '@/pages/Dashboard';
 import FormBuilder from '@/pages/FormBuilder';
 import FormViewer from '@/pages/FormViewer';
+import FormResponses from '@/pages/FormResponses';
 import Layout from '@/components/Layout';
 import LoadingSpinner from '@/components/LoadingSpinner';
 
@@ -61,6 +62,10 @@ function App() {
         <Route 
           path="/edit/:formId" 
           element={user ? <Layout><FormBuilder /></Layout> : <Navigate to="/auth" />} 
+        />
+        <Route 
+          path="/responses/:formId" 
+          element={user ? <Layout><FormResponses /></Layout> : <Navigate to="/auth" />} 
         />
       </Routes>
       <Toaster />

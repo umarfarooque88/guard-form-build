@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +61,7 @@ export default function FormBuilder() {
       setFormData({
         title: data.title,
         description: data.description || '',
-        fields: (data.fields as FormField[]) || [],
+        fields: (data.fields as unknown as FormField[]) || [],
         is_published: data.is_published
       });
     } catch (error) {

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +13,8 @@ import {
   Edit3, 
   Share2, 
   Trash2,
-  Calendar
+  Calendar,
+  BarChart3
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -234,6 +234,14 @@ export default function Dashboard() {
                   >
                     <Edit3 className="h-3 w-3 mr-1" />
                     Edit
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => navigate(`/responses/${form.id}`)}
+                  >
+                    <BarChart3 className="h-3 w-3 mr-1" />
+                    Responses
                   </Button>
                   {form.is_published && (
                     <Button 
