@@ -62,7 +62,7 @@ export default function FormBuilder() {
       setFormData({
         title: data.title,
         description: data.description || '',
-        fields: data.fields || [],
+        fields: (data.fields as FormField[]) || [],
         is_published: data.is_published
       });
     } catch (error) {
@@ -96,7 +96,7 @@ export default function FormBuilder() {
       const formPayload = {
         title: formData.title,
         description: formData.description,
-        fields: formData.fields,
+        fields: formData.fields as any, // Cast to Json
         is_published: publish || formData.is_published,
         owner_id: user.id
       };
@@ -114,7 +114,7 @@ export default function FormBuilder() {
         // Create new form
         result = await supabase
           .from('forms')
-          .insert([formPayload])
+          .insert(formPayload)
           .select()
           .single();
       }

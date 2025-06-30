@@ -58,7 +58,13 @@ export default function FormViewer() {
 
       if (error) throw error;
 
-      setForm(data);
+      setForm({
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        fields: (data.fields as FormField[]) || [],
+        settings: data.settings
+      });
     } catch (error) {
       console.error('Error fetching form:', error);
       toast({
@@ -107,12 +113,12 @@ export default function FormViewer() {
         .from('form_responses')
         .insert([{
           form_id: formId,
-          answers,
+          answers: answers as any, // Cast to Json
           metadata: {
             time_taken: timeTaken,
             user_agent: navigator.userAgent,
             tab_switches: 0 // TODO: Implement tab switch detection
-          }
+          } as any // Cast to Json
         }]);
 
       if (error) throw error;
