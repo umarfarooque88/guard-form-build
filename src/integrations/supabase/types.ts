@@ -9,7 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      form_responses: {
+        Row: {
+          answers: Json
+          form_id: string
+          id: string
+          metadata: Json | null
+          submitted_at: string
+          user_id: string | null
+        }
+        Insert: {
+          answers?: Json
+          form_id: string
+          id?: string
+          metadata?: Json | null
+          submitted_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          answers?: Json
+          form_id?: string
+          id?: string
+          metadata?: Json | null
+          submitted_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_responses_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_responses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forms: {
+        Row: {
+          created_at: string
+          description: string | null
+          fields: Json
+          id: string
+          is_published: boolean | null
+          owner_id: string
+          settings: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          fields?: Json
+          id?: string
+          is_published?: boolean | null
+          owner_id: string
+          settings?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          fields?: Json
+          id?: string
+          is_published?: boolean | null
+          owner_id?: string
+          settings?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forms_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +124,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      field_type:
+        | "short_text"
+        | "paragraph"
+        | "multiple_choice"
+        | "checkbox"
+        | "dropdown"
+        | "date"
+        | "file_upload"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +246,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      field_type: [
+        "short_text",
+        "paragraph",
+        "multiple_choice",
+        "checkbox",
+        "dropdown",
+        "date",
+        "file_upload",
+      ],
+    },
   },
 } as const
